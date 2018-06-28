@@ -78,7 +78,7 @@ public class WeatherServletTest extends Mockito{
      */
     public void testServletWithoutTown() throws Exception {
        
-    	/*
+    	
     	HttpServletRequest request = mock(HttpServletRequest.class);       
         HttpServletResponse response = mock(HttpServletResponse.class);    
 
@@ -107,6 +107,6 @@ public class WeatherServletTest extends Mockito{
             e.printStackTrace();
         }
         
-        assertTrue(actualErrorResponse.endsWith(expectedErrorMessage));*/
+        assertTrue(actualErrorResponse.endsWith(expectedErrorMessage));
     }
 }
