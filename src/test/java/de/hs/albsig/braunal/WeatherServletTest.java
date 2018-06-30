@@ -1,5 +1,6 @@
 package de.hs.albsig.braunal;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.PrintWriter;
@@ -11,102 +12,105 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
- * Mockito Tests to verify the WratherServlet 
+ * Mockito Tests to verify the WratherServlet
  * 
  * @author Alexander Braun
  *
  */
-public class WeatherServletTest extends Mockito{
-	
-    @Test
-    /**
-     * Verify the get-Method of the WeatherServlet 
-     * 
-     * @throws Exception if any method call throw an exception
-     */
-    public void testServletGet() throws Exception {
-        HttpServletRequest request = mock(HttpServletRequest.class);       
-        HttpServletResponse response = mock(HttpServletResponse.class);    
+public class WeatherServletTest extends Mockito {
 
-        when(request.getParameter("town")).thenReturn("ebingen");
+	private static final Logger Log = Logger.getLogger(WeatherServletTest.class);
 
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+	private HttpServletRequest request;
+	private HttpServletResponse response;
+	private StringWriter stringWriter;
+	private PrintWriter writer;
 
-        new WeatherServlet().doGet(request, response);
-        writer.flush(); 
-        
-        assertTrue(stringWriter!=null);
-        assertTrue(!stringWriter.toString().equals(""));
-    }
-    
-    @Test
-    /**
-     * Verify the post-Method of the WeatherServlet
-     * which calls the get-Method 
-     * 
-     * @throws Exception if any method call throw an exception
-     */
-    public void testServletPost() throws Exception {
-        HttpServletRequest request = mock(HttpServletRequest.class);       
-        HttpServletResponse response = mock(HttpServletResponse.class);    
+	@BeforeEach
+	public void init() {
+		request = mock(HttpServletRequest.class);
+		response = mock(HttpServletResponse.class);
+		stringWriter = new StringWriter();
+		writer = new PrintWriter(stringWriter);
+	}
 
-        when(request.getParameter("town")).thenReturn("ebingen");
+	/**
+	 * Verify the get-Method of the WeatherServlet
+	 * 
+	 * @throws Exception
+	 *             if any method call throw an exception
+	 */
+	@Test
+	public void testServletGet() throws Exception {
 
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+		when(request.getParameter("town")).thenReturn("ebingen");
+		when(response.getWriter()).thenReturn(writer);
 
-        new WeatherServlet().doPost(request, response);
-        writer.flush();
-        
-        assertTrue(stringWriter!=null);
-        assertTrue(!stringWriter.toString().equals(""));
-    }
-    
-    @Test
-    /**
-     * Verify that the right errorMessage is returned 
-     * if the Servlet is called without a town 
-     * 
-     * @throws Exception if any method call throw an exception
-     */
-    public void testServletWithoutTown() throws Exception {
-       
-    	
-    	HttpServletRequest request = mock(HttpServletRequest.class);       
-        HttpServletResponse response = mock(HttpServletResponse.class);    
+		new WeatherServlet().doGet(request, response);
 
-        when(request.getParameter("town")).thenReturn(null);
+		assertNotNull(stringWriter);
+		assertTrue(!stringWriter.toString().equals(""));
+	}
 
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+	/**
+	 * Verify the post-Method of the WeatherServlet which calls the get-Method
+	 * 
+	 * @throws Exception
+	 *             if any method call throw an exception
+	 */
+	@Test
+	public void testServletPost() throws Exception {
 
-        new WeatherServlet().doPost(request, response);        
-        writer.flush(); // it may not have been flushed yet...
-        
-        String actualErrorResponse = writer.toString(); 
-        
-        
-        ErrorMessage message = new ErrorMessage("No Town", "Please call the Servlet with ?town= 'your town'");
-        StringWriter writer2 = new StringWriter();
-        JAXBContext jaxbContext;
-        String expectedErrorMessage = "";
-        try {
-            jaxbContext = JAXBContext.newInstance(ErrorMessage.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbMarshaller.marshal(message, writer);
-            expectedErrorMessage = writer.toString();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-        
-        assertTrue(actualErrorResponse.endsWith(expectedErrorMessage));
-    }
+		when(request.getParameter("town")).thenReturn("ebingen");
+		when(response.getWriter()).thenReturn(writer);
+
+		new WeatherServlet().doPost(request, response);
+
+		assertNotNull(stringWriter);
+		assertTrue(!stringWriter.toString().equals(""));
+	}
+
+	/**
+	 * Verify that the right errorMessage is returned if the Servlet is called
+	 * without a town
+	 * 
+	 * @throws Exception
+	 *             if any method call throw an exception
+	 */
+	@Test
+	public void testServletWithoutTown() throws Exception {
+
+		when(request.getParameter("town")).thenReturn(null);
+		when(response.getWriter()).thenReturn(writer);
+
+		new WeatherServlet().doPost(request, response);
+
+		String actualErrorResponse = writer.toString();
+
+		ErrorMessage message = new ErrorMessage("No Town", "Please call the Servlet with ?town= 'your town'");
+		JAXBContext jaxbContext;
+		String expectedErrorMessage = "";
+		try {
+			jaxbContext = JAXBContext.newInstance(ErrorMessage.class);
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.marshal(message, writer);
+			expectedErrorMessage = writer.toString();
+		} catch (JAXBException e) {
+			Log.error(e.getStackTrace());
+		}
+
+		assertTrue(actualErrorResponse.endsWith(expectedErrorMessage));
+	}
+
+	@AfterEach
+	public void end() {
+		writer.flush();
+	}
 }

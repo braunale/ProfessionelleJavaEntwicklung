@@ -30,3 +30,5 @@ Thumbs.db
 target/
 logs/
 .settings
+.classpath
+.project
